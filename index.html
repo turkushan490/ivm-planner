@@ -6,6 +6,10 @@
 <title>IVM Planner</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://res.cdn.office.net/teams-js/2.24.0/js/MicrosoftTeams.min.js"></script>
+<script>
+(async function(){try{await microsoftTeams.app.initialize();microsoftTeams.pages.config.registerOnSaveHandler(function(e){microsoftTeams.pages.config.setConfig({entityId:"ivmPlanner",contentUrl:window.location.href,websiteUrl:window.location.href,suggestedDisplayName:"IVM Planner"});e.notifySuccess()});microsoftTeams.pages.config.setValidityState(true)}catch(ex){console.log("Not in Teams context")}})();
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -29,7 +33,7 @@ const addDays=(d,n)=>{const r=new Date(d);r.setDate(r.getDate()+n);return toISO(
 const isWE=d=>[0,6].includes(new Date(d).getDay());
 const mName=d=>["Jan","Feb","Mrt","Apr","Mei","Jun","Jul","Aug","Sep","Okt","Nov","Dec"][new Date(d).getMonth()];
 const uid=()=>Math.random().toString(36).slice(2,9);
-const STORE_KEY="gantt-planner-v2";
+const STORE_KEY="ivm-planner-v2";
 function loadData(){try{const d=localStorage.getItem(STORE_KEY);return d?JSON.parse(d):null}catch(e){return null}}
 function saveData(d){try{localStorage.setItem(STORE_KEY,JSON.stringify(d))}catch(er){console.error(er)}}
 
@@ -89,7 +93,7 @@ function CatForm({cat,onSave,onDelete,onCancel,parentName}){
         e("button",{onClick:()=>name.trim()&&onSave(name.trim(),color,usePeriod?{start:pStart,end:pEnd}:null),style:bS("#00b8d4")},cat.isNew?"Toevoegen":"Opslaan"))))
 }
 
-function GanttPlanner(){
+function IVMPlanner(){
   const[data,setData]=useState(null);
   const[loading,setLoading]=useState(true);
   const[viewStart,setViewStart]=useState(toISO(addDays(new Date(),-7)));
@@ -315,7 +319,7 @@ function GanttPlanner(){
     ctx&&e(CtxMenu,{x:ctx.x,y:ctx.y,items:ctx.items,onClose:()=>setCtx(null)}))
 }
 
-ReactDOM.render(e(GanttPlanner),document.getElementById("root"));
+ReactDOM.render(e(IVMPlanner),document.getElementById("root"));
 </script>
 </body>
 </html>

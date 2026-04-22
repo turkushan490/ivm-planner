@@ -6,8 +6,8 @@
 <title>IVM Planner</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.14.1/firebase-app-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.14.1/firebase-database-compat.js"></script>
 <script src="https://res.cdn.office.net/teams-js/2.24.0/js/MicrosoftTeams.min.js"></script>
 <script>(async function(){try{await microsoftTeams.app.initialize();microsoftTeams.pages.config.registerOnSaveHandler(function(e){microsoftTeams.pages.config.setConfig({entityId:"ivmPlanner",contentUrl:window.location.href,websiteUrl:window.location.href,suggestedDisplayName:"IVM Planner"});e.notifySuccess()});microsoftTeams.pages.config.setValidityState(true)}catch(ex){}})()</script>
 <script>
@@ -118,13 +118,13 @@ function TeamSelect({onSelect}){
 // ═══════════════════════════════════════
 function Planner({teamId,teamName,onBack}){
 const[data,setData]=useState(null);const[lo,sLo]=useState(!0);const[vs,sVS]=useState(toISO(addD(new Date(),-3)));const[vd,sVD]=useState(28);const[eT,sET]=useState(null);const[eC,sEC]=useState(null);const[cx,sCx]=useState(null);const[dm,sDM]=useState(null);const[shV,sShV]=useState(!1);const[shT,sShT]=useState(!1);const[shPDF,sShPDF]=useState(false);const[pdfS,sPdfS]=useState(toISO(new Date()));const[pdfE,sPdfE]=useState(addD(new Date(),28));const[nvn,sNVN]=useState("");const[cb,sCB]=useState(null);const[col,sCol]=useState(new Set());const[di,sDI]=useState(null);const[sel,sSel]=useState(null);const[mt,sMt]=useState(!1);const[toast,sToast]=useState(null);const[sync,setSync]=useState("connecting");
-const histRef=useRef([]);const tlRef=useRef(null);const skipFB=useRef(false);
+const histRef=useRef([]);const tlRef=useRef(null);
 const dbRef=useMemo(()=>db.ref("planners/"+teamId),[teamId]);
 
 useEffect(()=>{
   dbRef.on("value",snap=>{
     const val=snap.val();
-    if(skipFB.current){skipFB.current=false;return}
+    
     setData(val?{categories:val.categories||[],tasks:val.tasks||[],dependencies:val.dependencies||[],versions:val.versions||[],templates:val.templates||[]}:{...EMPTY});
     sLo(false);setSync("synced");setTimeout(()=>sMt(true),100);
   },err=>{console.error(err);setSync("error");setData({...EMPTY});sLo(false)});
@@ -132,7 +132,7 @@ useEffect(()=>{
 },[teamId]);
 
 const show=(msg)=>{sToast(msg);setTimeout(()=>sToast(null),1500)};
-const sa=useCallback((nd,skip)=>{if(!skip&&data){histRef.current.push(JSON.stringify(data));if(histRef.current.length>30)histRef.current.shift()}setData(nd);skipFB.current=true;dbRef.set(nd).then(()=>setSync("synced")).catch(()=>setSync("error"))},[data,dbRef]);
+const sa=useCallback((nd,skip)=>{if(!skip&&data){histRef.current.push(JSON.stringify(data));if(histRef.current.length>30)histRef.current.shift()}setData(nd);dbRef.set(nd).then(()=>setSync("synced")).catch(()=>setSync("error"))},[data,dbRef]);
 const undo=useCallback(()=>{if(!histRef.current.length)return;const p=JSON.parse(histRef.current.pop());sa(p,true);show("↩ Undo")},[]);
 const fc=useMemo(()=>{if(!data)return[];const b=(pid,d)=>{const k=data.categories.filter(c=>c.parentId===pid).sort((a,b)=>(a.order||0)-(b.order||0));const r=[];k.forEach(c=>{r.push({...c,depth:d});if(!col.has(c.id))r.push(...b(c.id,d+1))});return r};return b(null,0)},[data,col]);
 const hc=id=>data?.categories.some(c=>c.parentId===id);
@@ -164,8 +164,8 @@ useEffect(()=>{const onKey=ev=>{if(ev.target.tagName==="INPUT"||ev.target.tagNam
 const tCtx=(ev,t)=>{ev.preventDefault();ev.stopPropagation();const td=data.dependencies.filter(d=>d.from===t.id||d.to===t.id);const dI=td.length?[{divider:!0},{icon:"🔗",label:`Deps (${td.length})`,disabled:!0},...td.map(d=>{const o=d.from===t.id?data.tasks.find(x=>x.id===d.to):data.tasks.find(x=>x.id===d.from);return{icon:"✕",label:(d.from===t.id?"→ ":"← ")+(o?.name||"?"),action:()=>dDP(d.id),danger:!0}})]:[];sCx({x:ev.clientX,y:ev.clientY,items:[{icon:"✏️",label:"Bewerken",action:()=>sET({...t,isNew:!1})},{icon:"📋",label:"Kopiëren",action:()=>cpT(t),shortcut:"Ctrl+C"},{icon:"📌",label:"Template",action:()=>sTmpl(t)},{divider:!0},{icon:"⛓",label:"Dependency",action:()=>sDM({from:t.id})},...dI,{divider:!0},{icon:"🗑",label:"Verwijderen",action:()=>dT(t.id),danger:!0,shortcut:"Del"}]})};
 const cCtx=(ev,cat)=>{ev.preventDefault();ev.stopPropagation();const sb=data.categories.filter(c=>c.parentId===cat.parentId).sort((a,b)=>(a.order||0)-(b.order||0));const i=sb.findIndex(c=>c.id===cat.id);sCx({x:ev.clientX,y:ev.clientY,items:[{icon:"➕",label:"Sub-categorie",action:()=>sEC({isNew:!0,parentId:cat.id,name:"",color:COLORS[data.categories.length%COLORS.length],period:null})},{icon:"📝",label:"Nieuwe taak",action:()=>{const s=toISO(new Date());sET({isNew:!0,categoryId:cat.id,name:"",startDate:s,endDate:addD(s,4),color:COLORS[data.tasks.length%COLORS.length],progress:0,stateIcon:"",description:""})}},{icon:"✏️",label:"Bewerken",action:()=>sEC({...cat,isNew:!1})},{divider:!0},{icon:"📋",label:"Plakken",action:()=>paT(cat.id),disabled:!cb},{icon:"📌",label:"Template",action:()=>sShT(cat.id)},{divider:!0},{icon:"⬆",label:"Omhoog",action:()=>mC(cat.id,-1),disabled:i<=0},{icon:"⬇",label:"Omlaag",action:()=>mC(cat.id,1),disabled:i>=sb.length-1},{divider:!0},{icon:"🗑",label:"Verwijderen",action:()=>dC(cat.id),danger:!0}]})};
 
-const onMD=(ev,t,tp)=>{ev.stopPropagation();ev.preventDefault();sDI({task:t,type:tp,startX:ev.clientX,os:t.startDate,oe:t.endDate})};
-useEffect(()=>{if(!di)return;const onM=ev=>{const dx=Math.round((ev.clientX-di.startX)/DAY_W);if(dx){const{task:t,type:tp,os,oe}=di;if(tp==="move")uT(t.id,{startDate:addD(os,dx),endDate:addD(oe,dx)});else if(tp==="left"){const ns=addD(os,dx);if(diffD(ns,oe)>=0)uT(t.id,{startDate:ns})}else{const ne=addD(oe,dx);if(diffD(os,ne)>=0)uT(t.id,{endDate:ne})}}if(tlRef.current){const r=tlRef.current.getBoundingClientRect();if(ev.clientX>r.right-60)tlRef.current.scrollLeft+=15;else if(ev.clientX<r.left+60)tlRef.current.scrollLeft-=15}};const onU=()=>sDI(null);addEventListener("mousemove",onM);addEventListener("mouseup",onU);return()=>{removeEventListener("mousemove",onM);removeEventListener("mouseup",onU)}},[di]);
+const onMD=(ev,t,tp)=>{ev.stopPropagation();ev.preventDefault();sDI({task:t,type:tp,startX:ev.clientX,os:t.startDate,oe:t.endDate,lastDx:0})};
+useEffect(()=>{if(!di)return;const onM=ev=>{const dx=Math.round((ev.clientX-di.startX)/DAY_W);if(dx!==0&&dx!==di.lastDx){di.lastDx=dx;const{task:t,type:tp,os,oe}=di;if(tp==="move")uT(t.id,{startDate:addD(os,dx),endDate:addD(oe,dx)});else if(tp==="left"){const ns=addD(os,dx);if(diffD(ns,oe)>=0)uT(t.id,{startDate:ns})}else{const ne=addD(oe,dx);if(diffD(os,ne)>=0)uT(t.id,{endDate:ne})}}if(tlRef.current){const r=tlRef.current.getBoundingClientRect();if(ev.clientX>r.right-60)tlRef.current.scrollLeft+=15;else if(ev.clientX<r.left+60)tlRef.current.scrollLeft-=15}};const onU=()=>sDI(null);addEventListener("mousemove",onM);addEventListener("mouseup",onU);return()=>{removeEventListener("mousemove",onM);removeEventListener("mouseup",onU)}},[di]);
 
 if(lo)return e("div",{style:{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh",background:"#0e0e1a",color:"#ccc",gap:12}},e(Logo)," Laden...");
 const totalH=Math.max(fc.length*ROW_H,300);

@@ -132,7 +132,7 @@ useEffect(()=>{
 },[teamId]);
 
 const show=(msg)=>{sToast(msg);setTimeout(()=>sToast(null),1500)};
-const sa=useCallback((nd,skip)=>{if(!skip&&data){histRef.current.push(JSON.stringify(data));if(histRef.current.length>30)histRef.current.shift()}setData(nd);dbRef.set(nd).then(()=>setSync("synced")).catch(()=>setSync("error"))},[data,dbRef]);
+const sa=useCallback((nd,skip)=>{if(!skip&&data){histRef.current.push(JSON.stringify(data));if(histRef.current.length>30)histRef.current.shift()}setSync("saving");dbRef.set(nd).then(()=>setSync("synced")).catch(e=>{console.error(e);setSync("error");setData(nd)})},[data,dbRef]);
 const undo=useCallback(()=>{if(!histRef.current.length)return;const p=JSON.parse(histRef.current.pop());sa(p,true);show("↩ Undo")},[]);
 const fc=useMemo(()=>{if(!data)return[];const b=(pid,d)=>{const k=data.categories.filter(c=>c.parentId===pid).sort((a,b)=>(a.order||0)-(b.order||0));const r=[];k.forEach(c=>{r.push({...c,depth:d});if(!col.has(c.id))r.push(...b(c.id,d+1))});return r};return b(null,0)},[data,col]);
 const hc=id=>data?.categories.some(c=>c.parentId===id);

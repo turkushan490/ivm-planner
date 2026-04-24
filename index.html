@@ -125,14 +125,15 @@ useEffect(()=>{
   dbRef.on("value",snap=>{
     if(writingRef.current)return;
     const val=snap.val();
-    setData(val?{categories:val.categories||[],tasks:val.tasks||[],dependencies:val.dependencies||[],versions:val.versions||[],templates:val.templates||[]}:{...EMPTY});
-    sLo(false);setSync("synced");setTimeout(()=>sMt(true),100);
-  },err=>{console.error(err);setSync("error");setData({...EMPTY});sLo(false)});
+    if(val){setData({categories:val.categories||[],tasks:val.tasks||[],dependencies:val.dependencies||[],versions:val.versions||[],templates:val.templates||[]});setSync("synced")}
+    else{try{const ls=localStorage.getItem("ivm-planner-"+teamId);if(ls)setData(JSON.parse(ls));else setData({...EMPTY})}catch(e){setData({...EMPTY})}}
+    sLo(false);setTimeout(()=>sMt(true),100);
+  },err=>{console.error(err);setSync("error");try{const ls=localStorage.getItem("ivm-planner-"+teamId);if(ls)setData(JSON.parse(ls));else setData({...EMPTY})}catch(e){setData({...EMPTY})}sLo(false)});
   return()=>dbRef.off();
 },[teamId]);
 
-const show=(msg)=>{sToast(msg);setTimeout(()=>sToast(null),1500)};
-const sa=useCallback((nd,skip)=>{if(!skip&&data){histRef.current.push(JSON.stringify(data));if(histRef.current.length>30)histRef.current.shift()}setData(nd);writingRef.current=true;dbRef.set(nd).then(()=>{setSync("synced");writingRef.current=false}).catch(e=>{console.error("Firebase write error:",e);setSync("error");writingRef.current=false})},[data,dbRef]);
+const show=(msg)=>{sToast(msg);setTimeout(()=>sToast(null),2000)};
+const sa=useCallback((nd,skip)=>{if(!skip&&data){histRef.current.push(JSON.stringify(data));if(histRef.current.length>30)histRef.current.shift()}setData(nd);try{localStorage.setItem("ivm-planner-"+teamId,JSON.stringify(nd))}catch(e){}writingRef.current=true;setTimeout(()=>{writingRef.current=false},2000);dbRef.set(nd).then(()=>{setSync("synced");writingRef.current=false}).catch(e=>{console.error("Firebase write error:",e);setSync("error");show("⚠️ "+e.message);writingRef.current=false})},[data,dbRef,teamId]);
 const undo=useCallback(()=>{if(!histRef.current.length)return;const p=JSON.parse(histRef.current.pop());sa(p,true);show("↩ Undo")},[]);
 const fc=useMemo(()=>{if(!data)return[];const b=(pid,d)=>{const k=data.categories.filter(c=>c.parentId===pid).sort((a,b)=>(a.order||0)-(b.order||0));const r=[];k.forEach(c=>{r.push({...c,depth:d});if(!col.has(c.id))r.push(...b(c.id,d+1))});return r};return b(null,0)},[data,col]);
 const hc=id=>data?.categories.some(c=>c.parentId===id);

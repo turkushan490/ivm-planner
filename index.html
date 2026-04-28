@@ -118,7 +118,7 @@ function TeamSelect({onSelect}){
 // ═══════════════════════════════════════
 function Planner({teamId,teamName,onBack}){
 const[data,setData]=useState(null);const[lo,sLo]=useState(!0);const[vs,sVS]=useState(toISO(addD(new Date(),-3)));const[vd,sVD]=useState(28);const[eT,sET]=useState(null);const[eC,sEC]=useState(null);const[cx,sCx]=useState(null);const[dm,sDM]=useState(null);const[shV,sShV]=useState(!1);const[shT,sShT]=useState(!1);const[shPDF,sShPDF]=useState(false);const[pdfS,sPdfS]=useState(toISO(new Date()));const[pdfE,sPdfE]=useState(addD(new Date(),28));const[nvn,sNVN]=useState("");const[cb,sCB]=useState(null);const[col,sCol]=useState(new Set());const[di,sDI]=useState(null);const[sel,sSel]=useState(null);const[mt,sMt]=useState(!1);const[toast,sToast]=useState(null);const[sync,setSync]=useState("connecting");
-const histRef=useRef([]);const tlRef=useRef(null);const writingRef=useRef(false);
+const histRef=useRef([]);const tlRef=useRef(null);const writingRef=useRef(false);const dataRef=useRef(null);
 const dbRef=useMemo(()=>db.ref("planners/"+teamId),[teamId]);
 
 useEffect(()=>{
@@ -133,8 +133,21 @@ useEffect(()=>{
 },[teamId]);
 
 const show=(msg)=>{sToast(msg);setTimeout(()=>sToast(null),2000)};
-const sa=useCallback((nd,skip)=>{if(!skip&&data){histRef.current.push(JSON.stringify(data));if(histRef.current.length>30)histRef.current.shift()}setData(nd);try{localStorage.setItem("ivm-planner-"+teamId,JSON.stringify(nd))}catch(e){}writingRef.current=true;setTimeout(()=>{writingRef.current=false},2000);dbRef.set(nd).then(()=>{setSync("synced");writingRef.current=false}).catch(e=>{console.error("Firebase write error:",e);setSync("error");show("⚠️ "+e.message);writingRef.current=false})},[data,dbRef,teamId]);
-const undo=useCallback(()=>{if(!histRef.current.length)return;const p=JSON.parse(histRef.current.pop());sa(p,true);show("↩ Undo")},[]);
+// Keep dataRef in sync
+useEffect(()=>{dataRef.current=data},[data]);
+// Sanitize: Firebase deletes empty arrays, so ensure all fields exist
+const sanitize=d=>({categories:d.categories||[],tasks:d.tasks||[],dependencies:d.dependencies||[],versions:d.versions||[],templates:d.templates||[]});
+const sa=useCallback((nd,skip)=>{
+  const clean=sanitize(nd);
+  if(!skip&&dataRef.current){histRef.current.push(JSON.stringify(dataRef.current));if(histRef.current.length>30)histRef.current.shift()}
+  setData(clean);
+  try{localStorage.setItem("ivm-planner-"+teamId,JSON.stringify(clean))}catch(e){}
+  writingRef.current=true;
+  setTimeout(()=>{writingRef.current=false},3000);
+  console.log("Firebase write:",Object.keys(clean).map(k=>k+":"+((clean[k]&&clean[k].length)||0)));
+  dbRef.set(clean).then(()=>{console.log("Firebase write OK");setSync("synced");writingRef.current=false}).catch(e=>{console.error("Firebase write FAIL:",e);setSync("error");show("⚠️ "+e.message);writingRef.current=false})
+},[dbRef,teamId]);
+const undo=useCallback(()=>{if(!histRef.current.length)return;const p=JSON.parse(histRef.current.pop());sa(p,true);show("↩ Undo")},[sa]);
 const fc=useMemo(()=>{if(!data)return[];const b=(pid,d)=>{const k=data.categories.filter(c=>c.parentId===pid).sort((a,b)=>(a.order||0)-(b.order||0));const r=[];k.forEach(c=>{r.push({...c,depth:d});if(!col.has(c.id))r.push(...b(c.id,d+1))});return r};return b(null,0)},[data,col]);
 const hc=id=>data?.categories.some(c=>c.parentId===id);
 const tc=id=>{const s=new Set(col);s.has(id)?s.delete(id):s.add(id);sCol(s)};

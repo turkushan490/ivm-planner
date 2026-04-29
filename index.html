@@ -136,6 +136,7 @@ const show=(msg)=>{sToast(msg);setTimeout(()=>sToast(null),2000)};
 // Keep dataRef in sync
 useEffect(()=>{dataRef.current=data},[data]);
 // Sanitize: Firebase deletes empty arrays, so ensure all fields exist
+const D=()=>sanitize(dataRef.current||{});
 const sanitize=d=>({categories:d.categories||[],tasks:d.tasks||[],dependencies:d.dependencies||[],versions:d.versions||[],templates:d.templates||[]});
 const sa=useCallback((nd,skip)=>{
   const clean=sanitize(nd);
@@ -151,29 +152,29 @@ const undo=useCallback(()=>{if(!histRef.current.length)return;const p=JSON.parse
 const fc=useMemo(()=>{if(!data)return[];const b=(pid,d)=>{const k=data.categories.filter(c=>c.parentId===pid).sort((a,b)=>(a.order||0)-(b.order||0));const r=[];k.forEach(c=>{r.push({...c,depth:d});if(!col.has(c.id))r.push(...b(c.id,d+1))});return r};return b(null,0)},[data,col]);
 const hc=id=>data?.categories.some(c=>c.parentId===id);
 const tc=id=>{const s=new Set(col);s.has(id)?s.delete(id):s.add(id);sCol(s)};
-const aC=(n,c,pid=null,p=null)=>{const sb=data.categories.filter(x=>x.parentId===pid);sa({...data,categories:[...data.categories,{id:uid(),name:n,color:c||COLORS[data.categories.length%COLORS.length],parentId:pid,order:sb.length,period:p}]})};
-const uC=(id,u)=>sa({...data,categories:data.categories.map(c=>c.id===id?{...c,...u}:c)});
-const dC=id=>{const a=new Set();const cl=p=>{data.categories.filter(c=>c.parentId===p).forEach(c=>{a.add(c.id);cl(c.id)})};a.add(id);cl(id);const nd={...data,categories:data.categories.filter(c=>!a.has(c.id)),tasks:data.tasks.filter(t=>!a.has(t.categoryId))};const ti=new Set(nd.tasks.map(t=>t.id));nd.dependencies=nd.dependencies.filter(d=>ti.has(d.from)&&ti.has(d.to));sa(nd)};
-const mC=(id,dir)=>{const cat=data.categories.find(c=>c.id===id);const sb=data.categories.filter(c=>c.parentId===cat.parentId).sort((a,b)=>(a.order||0)-(b.order||0));const i=sb.findIndex(c=>c.id===id);const si=i+dir;if(si<0||si>=sb.length)return;const u=new Map();u.set(sb[i].id,si);u.set(sb[si].id,i);sa({...data,categories:data.categories.map(c=>u.has(c.id)?{...c,order:u.get(c.id)}:c)})};
-const aT=t=>sa({...data,tasks:[...data.tasks,{id:uid(),progress:0,color:COLORS[data.tasks.length%COLORS.length],stateIcon:"",description:"",...t}]});
-const uT=(id,u)=>sa({...data,tasks:data.tasks.map(t=>t.id===id?{...t,...u}:t)});
-const dT=id=>{sa({...data,tasks:data.tasks.filter(t=>t.id!==id),dependencies:data.dependencies.filter(d=>d.from!==id&&d.to!==id)});if(sel===id)sSel(null)};
-const aDP=(f,t)=>{if(f===t||data.dependencies.some(d=>d.from===f&&d.to===t))return;sa({...data,dependencies:[...data.dependencies,{id:uid(),from:f,to:t}]})};
-const dDP=id=>sa({...data,dependencies:data.dependencies.filter(d=>d.id!==id)});
+const aC=(n,c,pid=null,p=null)=>{const d=D();const sb=d.categories.filter(x=>x.parentId===pid);sa({...d,categories:[...d.categories,{id:uid(),name:n,color:c||COLORS[d.categories.length%COLORS.length],parentId:pid,order:sb.length,period:p}]})};
+const uC=(id,u)=>{const d=D();sa({...d,categories:d.categories.map(c=>c.id===id?{...c,...u}:c)})};
+const dC=id=>{const d=D();const a=new Set();const cl=p=>{d.categories.filter(c=>c.parentId===p).forEach(c=>{a.add(c.id);cl(c.id)})};a.add(id);cl(id);const nd={...d,categories:d.categories.filter(c=>!a.has(c.id)),tasks:d.tasks.filter(t=>!a.has(t.categoryId))};const ti=new Set(nd.tasks.map(t=>t.id));nd.dependencies=nd.dependencies.filter(x=>ti.has(x.from)&&ti.has(x.to));sa(nd)};
+const mC=(id,dir)=>{const d=D();const cat=d.categories.find(c=>c.id===id);const sb=d.categories.filter(c=>c.parentId===cat.parentId).sort((a,b)=>(a.order||0)-(b.order||0));const i=sb.findIndex(c=>c.id===id);const si=i+dir;if(si<0||si>=sb.length)return;const u=new Map();u.set(sb[i].id,si);u.set(sb[si].id,i);sa({...d,categories:d.categories.map(c=>u.has(c.id)?{...c,order:u.get(c.id)}:c)})};
+const aT=t=>{const d=D();sa({...d,tasks:[...d.tasks,{id:uid(),progress:0,color:COLORS[d.tasks.length%COLORS.length],stateIcon:"",description:"",...t}]})};
+const uT=(id,u)=>{const d=D();sa({...d,tasks:d.tasks.map(t=>t.id===id?{...t,...u}:t)})};
+const dT=id=>{const d=D();sa({...d,tasks:d.tasks.filter(t=>t.id!==id),dependencies:d.dependencies.filter(d=>d.from!==id&&d.to!==id)});if(sel===id)sSel(null)};
+const aDP=(f,t)=>{const d=D();if(f===t||d.dependencies.some(x=>x.from===f&&x.to===t))return;sa({...d,dependencies:[...d.dependencies,{id:uid(),from:f,to:t}]})};
+const dDP=id=>{const d=D();sa({...d,dependencies:d.dependencies.filter(x=>x.id!==id)})};
 const cpT=t=>{sCB({type:"task",data:{...t}});show("📋 Gekopieerd")};
 const paT=cid=>{if(!cb||cb.type!=="task")return;aT({categoryId:cid,name:cb.data.name+" (kopie)",startDate:cb.data.startDate,endDate:cb.data.endDate,color:cb.data.color,progress:0,stateIcon:cb.data.stateIcon||""});show("📋 Geplakt!")};
-const sTmpl=t=>sa({...data,templates:[...(data.templates||[]),{id:uid(),name:t.name,duration:diffD(t.startDate,t.endDate),color:t.color,stateIcon:t.stateIcon}]});
+const sTmpl=t=>{const d=D();sa({...d,templates:[...(d.templates||[]),{id:uid(),name:t.name,duration:diffD(t.startDate,t.endDate),color:t.color,stateIcon:t.stateIcon}]})};
 const apTmpl=(t,cid)=>{const s=toISO(new Date());aT({categoryId:cid,name:t.name,startDate:s,endDate:addD(s,t.duration),color:t.color,stateIcon:t.stateIcon||""})};
-const dTmpl=id=>sa({...data,templates:(data.templates||[]).filter(t=>t.id!==id)});
-const svV=()=>{if(!nvn.trim())return;const sn=JSON.parse(JSON.stringify({categories:data.categories,tasks:data.tasks,dependencies:data.dependencies}));sa({...data,versions:[...(data.versions||[]),{id:uid(),name:nvn.trim(),date:new Date().toISOString(),snapshot:sn}]});sNVN("")};
-const rsV=v=>{sa({...data,...v.snapshot});sShV(!1)};
-const dvV=id=>sa({...data,versions:(data.versions||[]).filter(v=>v.id!==id)});
+const dTmpl=id=>{const d=D();sa({...d,templates:(d.templates||[]).filter(t=>t.id!==id)})};
+const svV=()=>{if(!nvn.trim())return;const d=D();const sn=JSON.parse(JSON.stringify({categories:d.categories,tasks:d.tasks,dependencies:d.dependencies}));sa({...d,versions:[...(d.versions||[]),{id:uid(),name:nvn.trim(),date:new Date().toISOString(),snapshot:sn}]});sNVN("")};
+const rsV=v=>{const d=D();sa({...d,...v.snapshot});sShV(!1)};
+const dvV=id=>{const d=D();sa({...d,versions:(d.versions||[]).filter(v=>v.id!==id)})};
 
 const totalDays=useMemo(()=>{if(!data||!data.tasks.length)return vd;let mx=addD(vs,vd);data.tasks.forEach(t=>{if(t.endDate>mx)mx=t.endDate});return Math.max(vd,diffD(vs,mx)+7)},[data,vs,vd]);
 const days=useMemo(()=>Array.from({length:totalDays},(_,i)=>addD(vs,i)),[vs,totalDays]);
 const wks=useMemo(()=>{const w=[];let c=null;days.forEach((d,i)=>{const l=`${MN(d)} Wk${Math.ceil(new Date(d).getDate()/7)}`;if(!c||c.label!==l){c={label:l,start:i,count:1};w.push(c)}else c.count++});return w},[days]);
 
-useEffect(()=>{const onKey=ev=>{if(ev.target.tagName==="INPUT"||ev.target.tagName==="TEXTAREA"||ev.target.tagName==="SELECT")return;if((ev.ctrlKey||ev.metaKey)&&ev.key==="z"){ev.preventDefault();undo();return}if((ev.ctrlKey||ev.metaKey)&&ev.key==="c"&&sel){ev.preventDefault();const t=data.tasks.find(x=>x.id===sel);if(t)cpT(t);return}if((ev.ctrlKey||ev.metaKey)&&ev.key==="v"&&cb){ev.preventDefault();let cid=null;if(sel){const t=data.tasks.find(x=>x.id===sel);if(t)cid=t.categoryId}if(!cid&&fc.length)cid=fc[0].id;if(cid)paT(cid);return}if((ev.key==="Delete"||ev.key==="Backspace")&&sel){ev.preventDefault();show("🗑");dT(sel);return}if(ev.key==="Escape"){if(dm)sDM(null);else sSel(null)}};addEventListener("keydown",onKey);return()=>removeEventListener("keydown",onKey)},[sel,cb,dm,data,fc,undo]);
+useEffect(()=>{const onKey=ev=>{if(ev.target.tagName==="INPUT"||ev.target.tagName==="TEXTAREA"||ev.target.tagName==="SELECT")return;if((ev.ctrlKey||ev.metaKey)&&ev.key==="z"){ev.preventDefault();undo();return}if((ev.ctrlKey||ev.metaKey)&&ev.key==="c"&&sel){ev.preventDefault();const t=D().tasks.find(x=>x.id===sel);if(t)cpT(t);return}if((ev.ctrlKey||ev.metaKey)&&ev.key==="v"&&cb){ev.preventDefault();let cid=null;if(sel){const t=D().tasks.find(x=>x.id===sel);if(t)cid=t.categoryId}if(!cid&&fc.length)cid=fc[0].id;if(cid)paT(cid);return}if((ev.key==="Delete"||ev.key==="Backspace")&&sel){ev.preventDefault();show("🗑");dT(sel);return}if(ev.key==="Escape"){if(dm)sDM(null);else sSel(null)}};addEventListener("keydown",onKey);return()=>removeEventListener("keydown",onKey)},[sel,cb,dm,data,fc,undo]);
 
 const tCtx=(ev,t)=>{ev.preventDefault();ev.stopPropagation();const td=data.dependencies.filter(d=>d.from===t.id||d.to===t.id);const dI=td.length?[{divider:!0},{icon:"🔗",label:`Deps (${td.length})`,disabled:!0},...td.map(d=>{const o=d.from===t.id?data.tasks.find(x=>x.id===d.to):data.tasks.find(x=>x.id===d.from);return{icon:"✕",label:(d.from===t.id?"→ ":"← ")+(o?.name||"?"),action:()=>dDP(d.id),danger:!0}})]:[];sCx({x:ev.clientX,y:ev.clientY,items:[{icon:"✏️",label:"Bewerken",action:()=>sET({...t,isNew:!1})},{icon:"📋",label:"Kopiëren",action:()=>cpT(t),shortcut:"Ctrl+C"},{icon:"📌",label:"Template",action:()=>sTmpl(t)},{divider:!0},{icon:"⛓",label:"Dependency",action:()=>sDM({from:t.id})},...dI,{divider:!0},{icon:"🗑",label:"Verwijderen",action:()=>dT(t.id),danger:!0,shortcut:"Del"}]})};
 const cCtx=(ev,cat)=>{ev.preventDefault();ev.stopPropagation();const sb=data.categories.filter(c=>c.parentId===cat.parentId).sort((a,b)=>(a.order||0)-(b.order||0));const i=sb.findIndex(c=>c.id===cat.id);sCx({x:ev.clientX,y:ev.clientY,items:[{icon:"➕",label:"Sub-categorie",action:()=>sEC({isNew:!0,parentId:cat.id,name:"",color:COLORS[data.categories.length%COLORS.length],period:null})},{icon:"📝",label:"Nieuwe taak",action:()=>{const s=toISO(new Date());sET({isNew:!0,categoryId:cat.id,name:"",startDate:s,endDate:addD(s,4),color:COLORS[data.tasks.length%COLORS.length],progress:0,stateIcon:"",description:""})}},{icon:"✏️",label:"Bewerken",action:()=>sEC({...cat,isNew:!1})},{divider:!0},{icon:"📋",label:"Plakken",action:()=>paT(cat.id),disabled:!cb},{icon:"📌",label:"Template",action:()=>sShT(cat.id)},{divider:!0},{icon:"⬆",label:"Omhoog",action:()=>mC(cat.id,-1),disabled:i<=0},{icon:"⬇",label:"Omlaag",action:()=>mC(cat.id,1),disabled:i>=sb.length-1},{divider:!0},{icon:"🗑",label:"Verwijderen",action:()=>dC(cat.id),danger:!0}]})};

@@ -122,14 +122,17 @@ const histRef=useRef([]);const tlRef=useRef(null);const dataRef=useRef(null);
 const dbRef=useMemo(()=>db.ref("planners/"+teamId),[teamId]);
 
 useEffect(()=>{
-  console.log("Firebase: listening on planners/"+teamId);
-  dbRef.on("value",snap=>{
+  console.log("Loading data for team:",teamId);
+  dbRef.once("value").then(snap=>{
     const val=snap.val();
-    console.log("Firebase: data received",val?Object.keys(val).map(k=>k+":"+(val[k]&&val[k].length||0)):"null");
+    console.log("Loaded:",val);
     const d=val?{categories:val.categories||[],tasks:val.tasks||[],dependencies:val.dependencies||[],versions:val.versions||[],templates:val.templates||[]}:{...EMPTY};
     setData(d);dataRef.current=d;setSync("synced");sLo(false);setTimeout(()=>sMt(true),100);
-  },err=>{console.error("Firebase listen error:",err);setSync("error");setData({...EMPTY});sLo(false)});
-  return()=>dbRef.off();
+  }).catch(err=>{
+    console.error("Load error:",err);setSync("error");
+    try{const ls=localStorage.getItem("ivm-planner-"+teamId);if(ls){const d=JSON.parse(ls);setData(d);dataRef.current=d}else{setData({...EMPTY});dataRef.current={...EMPTY}}}catch(e){setData({...EMPTY});dataRef.current={...EMPTY}}
+    sLo(false);
+  });
 },[teamId]);
 
 const show=(msg)=>{sToast(msg);setTimeout(()=>sToast(null),3000)};
@@ -137,7 +140,10 @@ const show=(msg)=>{sToast(msg);setTimeout(()=>sToast(null),3000)};
 useEffect(()=>{dataRef.current=data},[data]);
 // Sanitize: Firebase deletes empty arrays, so ensure all fields exist
 const D=()=>sanitize(dataRef.current||{});
-const sanitize=d=>({categories:d.categories||[],tasks:d.tasks||[],dependencies:d.dependencies||[],versions:d.versions||[],templates:d.templates||[]});
+const sanitize=d=>{
+  const toArr=v=>!v?[]:Array.isArray(v)?v:Object.values(v);
+  return{categories:toArr(d.categories),tasks:toArr(d.tasks),dependencies:toArr(d.dependencies),versions:toArr(d.versions),templates:toArr(d.templates)};
+};
 const sa=useCallback((nd,skip)=>{
   const clean=sanitize(nd);
   if(!skip&&dataRef.current){histRef.current.push(JSON.stringify(dataRef.current));if(histRef.current.length>30)histRef.current.shift()}
@@ -148,6 +154,7 @@ const sa=useCallback((nd,skip)=>{
   dbRef.set(clean).then(()=>{show("✅ Opgeslagen! "+summary);setSync("synced")}).catch(e=>{show("❌ FOUT: "+e.message);console.error("Firebase write FAIL:",e);setSync("error")})
 },[dbRef,teamId]);
 const undo=useCallback(()=>{if(!histRef.current.length)return;const p=JSON.parse(histRef.current.pop());sa(p,true);show("↩ Undo")},[sa]);
+const reload=useCallback(()=>{show("🔄 Herladen...");dbRef.once("value").then(snap=>{const val=snap.val();const d=val?sanitize(val):{...EMPTY};setData(d);dataRef.current=d;show("✅ Herladen! cat:"+d.categories.length+" tas:"+d.tasks.length)}).catch(e=>show("❌ "+e.message))},[dbRef]);
 const fc=useMemo(()=>{if(!data)return[];const b=(pid,d)=>{const k=data.categories.filter(c=>c.parentId===pid).sort((a,b)=>(a.order||0)-(b.order||0));const r=[];k.forEach(c=>{r.push({...c,depth:d});if(!col.has(c.id))r.push(...b(c.id,d+1))});return r};return b(null,0)},[data,col]);
 const hc=id=>data?.categories.some(c=>c.parentId===id);
 const tc=id=>{const s=new Set(col);s.has(id)?s.delete(id):s.add(id);sCol(s)};
@@ -197,6 +204,7 @@ e("div",{style:{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}},
 dm&&e("div",{style:{background:"#ff174420",border:"1px solid #ff1744",borderRadius:8,padding:"5px 12px",fontSize:12,color:"#ff8a80",display:"flex",alignItems:"center",gap:6}},e("span",null,dm.from?"🎯 Doel":"⛓ Bron"),e("button",{onClick:()=>sDM(null),style:{background:"none",border:"none",color:"#ff5252",cursor:"pointer"}},"✕")),
 !dm&&e("button",{onClick:()=>sDM({from:null}),style:{...bS("#252540"),fontSize:12,padding:"7px 12px"}},"⛓"),
 e("button",{onClick:undo,style:{...bS("#252540"),fontSize:12,padding:"7px 12px"}},"↩"),
+e("button",{onClick:reload,style:{...bS("#252540"),fontSize:12,padding:"7px 12px"},title:"Herladen van Firebase"},"🔄"),
 e("button",{onClick:()=>sShPDF(!0),style:{...bS("#252540"),fontSize:12,padding:"7px 12px"}},"📄"),
 e("button",{onClick:()=>sShV(!0),style:{...bS("#252540"),fontSize:12,padding:"7px 12px"}},"📋"),
 e("button",{onClick:()=>sShT(!0),style:{...bS("#252540"),fontSize:12,padding:"7px 12px"}},"📌"),

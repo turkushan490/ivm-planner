@@ -132,7 +132,7 @@ useEffect(()=>{
   return()=>dbRef.off();
 },[teamId]);
 
-const show=(msg)=>{sToast(msg);setTimeout(()=>sToast(null),2000)};
+const show=(msg)=>{sToast(msg);setTimeout(()=>sToast(null),3000)};
 // Keep dataRef in sync
 useEffect(()=>{dataRef.current=data},[data]);
 // Sanitize: Firebase deletes empty arrays, so ensure all fields exist
@@ -143,8 +143,9 @@ const sa=useCallback((nd,skip)=>{
   if(!skip&&dataRef.current){histRef.current.push(JSON.stringify(dataRef.current));if(histRef.current.length>30)histRef.current.shift()}
   setData(clean);dataRef.current=clean;
   try{localStorage.setItem("ivm-planner-"+teamId,JSON.stringify(clean))}catch(e){}
-  console.log("Firebase write:",Object.keys(clean).map(k=>k+":"+((clean[k]&&clean[k].length)||0)));
-  dbRef.set(clean).then(()=>{console.log("Firebase write OK");setSync("synced")}).catch(e=>{console.error("Firebase write FAIL:",e);setSync("error");show("⚠️ "+e.message)})
+  const summary=Object.keys(clean).map(k=>k.slice(0,3)+":"+((clean[k]&&clean[k].length)||0)).join(" ");
+  show("💾 Opslaan... "+summary);
+  dbRef.set(clean).then(()=>{show("✅ Opgeslagen! "+summary);setSync("synced")}).catch(e=>{show("❌ FOUT: "+e.message);console.error("Firebase write FAIL:",e);setSync("error")})
 },[dbRef,teamId]);
 const undo=useCallback(()=>{if(!histRef.current.length)return;const p=JSON.parse(histRef.current.pop());sa(p,true);show("↩ Undo")},[sa]);
 const fc=useMemo(()=>{if(!data)return[];const b=(pid,d)=>{const k=data.categories.filter(c=>c.parentId===pid).sort((a,b)=>(a.order||0)-(b.order||0));const r=[];k.forEach(c=>{r.push({...c,depth:d});if(!col.has(c.id))r.push(...b(c.id,d+1))});return r};return b(null,0)},[data,col]);

@@ -118,17 +118,17 @@ function TeamSelect({onSelect}){
 // ═══════════════════════════════════════
 function Planner({teamId,teamName,onBack}){
 const[data,setData]=useState(null);const[lo,sLo]=useState(!0);const[vs,sVS]=useState(toISO(addD(new Date(),-3)));const[vd,sVD]=useState(28);const[eT,sET]=useState(null);const[eC,sEC]=useState(null);const[cx,sCx]=useState(null);const[dm,sDM]=useState(null);const[shV,sShV]=useState(!1);const[shT,sShT]=useState(!1);const[shPDF,sShPDF]=useState(false);const[pdfS,sPdfS]=useState(toISO(new Date()));const[pdfE,sPdfE]=useState(addD(new Date(),28));const[nvn,sNVN]=useState("");const[cb,sCB]=useState(null);const[col,sCol]=useState(new Set());const[di,sDI]=useState(null);const[sel,sSel]=useState(null);const[mt,sMt]=useState(!1);const[toast,sToast]=useState(null);const[sync,setSync]=useState("connecting");
-const histRef=useRef([]);const tlRef=useRef(null);const writingRef=useRef(false);const dataRef=useRef(null);
+const histRef=useRef([]);const tlRef=useRef(null);const dataRef=useRef(null);
 const dbRef=useMemo(()=>db.ref("planners/"+teamId),[teamId]);
 
 useEffect(()=>{
+  console.log("Firebase: listening on planners/"+teamId);
   dbRef.on("value",snap=>{
-    if(writingRef.current)return;
     const val=snap.val();
-    if(val){setData({categories:val.categories||[],tasks:val.tasks||[],dependencies:val.dependencies||[],versions:val.versions||[],templates:val.templates||[]});setSync("synced")}
-    else{try{const ls=localStorage.getItem("ivm-planner-"+teamId);if(ls)setData(JSON.parse(ls));else setData({...EMPTY})}catch(e){setData({...EMPTY})}}
-    sLo(false);setTimeout(()=>sMt(true),100);
-  },err=>{console.error(err);setSync("error");try{const ls=localStorage.getItem("ivm-planner-"+teamId);if(ls)setData(JSON.parse(ls));else setData({...EMPTY})}catch(e){setData({...EMPTY})}sLo(false)});
+    console.log("Firebase: data received",val?Object.keys(val).map(k=>k+":"+(val[k]&&val[k].length||0)):"null");
+    const d=val?{categories:val.categories||[],tasks:val.tasks||[],dependencies:val.dependencies||[],versions:val.versions||[],templates:val.templates||[]}:{...EMPTY};
+    setData(d);dataRef.current=d;setSync("synced");sLo(false);setTimeout(()=>sMt(true),100);
+  },err=>{console.error("Firebase listen error:",err);setSync("error");setData({...EMPTY});sLo(false)});
   return()=>dbRef.off();
 },[teamId]);
 
@@ -141,12 +141,10 @@ const sanitize=d=>({categories:d.categories||[],tasks:d.tasks||[],dependencies:d
 const sa=useCallback((nd,skip)=>{
   const clean=sanitize(nd);
   if(!skip&&dataRef.current){histRef.current.push(JSON.stringify(dataRef.current));if(histRef.current.length>30)histRef.current.shift()}
-  setData(clean);
+  setData(clean);dataRef.current=clean;
   try{localStorage.setItem("ivm-planner-"+teamId,JSON.stringify(clean))}catch(e){}
-  writingRef.current=true;
-  setTimeout(()=>{writingRef.current=false},3000);
   console.log("Firebase write:",Object.keys(clean).map(k=>k+":"+((clean[k]&&clean[k].length)||0)));
-  dbRef.set(clean).then(()=>{console.log("Firebase write OK");setSync("synced");writingRef.current=false}).catch(e=>{console.error("Firebase write FAIL:",e);setSync("error");show("⚠️ "+e.message);writingRef.current=false})
+  dbRef.set(clean).then(()=>{console.log("Firebase write OK");setSync("synced")}).catch(e=>{console.error("Firebase write FAIL:",e);setSync("error");show("⚠️ "+e.message)})
 },[dbRef,teamId]);
 const undo=useCallback(()=>{if(!histRef.current.length)return;const p=JSON.parse(histRef.current.pop());sa(p,true);show("↩ Undo")},[sa]);
 const fc=useMemo(()=>{if(!data)return[];const b=(pid,d)=>{const k=data.categories.filter(c=>c.parentId===pid).sort((a,b)=>(a.order||0)-(b.order||0));const r=[];k.forEach(c=>{r.push({...c,depth:d});if(!col.has(c.id))r.push(...b(c.id,d+1))});return r};return b(null,0)},[data,col]);

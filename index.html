@@ -12,7 +12,10 @@
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.14.1/firebase-app-compat.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/firebase@10.14.1/firebase-database-compat.js"></script>
 <script src="https://res.cdn.office.net/teams-js/2.24.0/js/MicrosoftTeams.min.js"></script>
-<script>window.__inTeams=false;(async function(){try{await microsoftTeams.app.initialize();window.__inTeams=true;microsoftTeams.pages.config.registerOnSaveHandler(function(e){microsoftTeams.pages.config.setConfig({entityId:"ivmPlanner",contentUrl:window.location.href,websiteUrl:window.location.href,suggestedDisplayName:"IVM Planner"});e.notifySuccess()});microsoftTeams.pages.config.setValidityState(true)}catch(ex){window.__inTeams=false}})()</script>
+<script>window.__inTeams=false;
+// Detect Teams: iframe check + user agent + SDK
+if(window.self!==window.top||navigator.userAgent.indexOf("Teams")>-1)window.__inTeams=true;
+(async function(){try{await microsoftTeams.app.initialize();window.__inTeams=true;microsoftTeams.pages.config.registerOnSaveHandler(function(e){microsoftTeams.pages.config.setConfig({entityId:"ivmPlanner",contentUrl:window.location.href,websiteUrl:window.location.href,suggestedDisplayName:"IVM Planner"});e.notifySuccess()});microsoftTeams.pages.config.setValidityState(true)}catch(ex){}})()</script>
 <script>
 const fbApp=firebase.initializeApp({apiKey:"AIzaSyDFWd1lUphQ-6QGjfyz3kfqxFgD3ohwoSY",authDomain:"ivm-planner.firebaseapp.com",databaseURL:"https://ivm-planner-default-rtdb.europe-west1.firebasedatabase.app",projectId:"ivm-planner",storageBucket:"ivm-planner.firebasestorage.app",messagingSenderId:"600401622523",appId:"1:600401622523:web:26e1481d22a1b925a4475e"});
 const db=firebase.database();
@@ -263,15 +266,15 @@ function TeamsGate({children}){
   const[inTeams,setInTeams]=useState(false);
   useEffect(()=>{
     // Wait a moment for Teams SDK to initialize
-    const t=setTimeout(()=>{setInTeams(window.__inTeams||false);setChecking(false)},1500);
+    const t=setTimeout(()=>{setInTeams(window.__inTeams||false);setChecking(false)},800);
     return()=>clearTimeout(t);
   },[]);
   if(checking)return e("div",{style:{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh",background:"#0e0e1a",color:"#ccc",gap:12}},e(Logo),e("span",{style:{fontSize:16}},"Laden..."));
   if(!inTeams)return e("div",{style:{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100vh",background:"#0e0e1a",padding:40,textAlign:"center"}},
     e(Logo),
     e("h2",{style:{color:"#fff",marginTop:20,fontSize:24}},"IVM Planner"),
-    e("p",{style:{color:"#888",fontSize:16,marginTop:12,maxWidth:400,lineHeight:1.6}},"Deze app is alleen beschikbaar via Microsoft Teams. Open de IVM Planner tab in je Teams kanaal."),
-    e("div",{style:{marginTop:24,padding:"12px 24px",background:"#1a1a30",borderRadius:10,border:"1px solid #252540",color:"#555",fontSize:13}},"Niet ingelogd via Teams"));
+    e("p",{style:{color:"#888",fontSize:16,marginTop:12,maxWidth:400,lineHeight:1.6}},"Deze app is bedoeld voor Microsoft Teams."),
+    e("button",{onClick:()=>setInTeams(true),style:{marginTop:20,background:"#252540",border:"1px solid #333",borderRadius:8,padding:"10px 20px",color:"#888",fontSize:13,cursor:"pointer"}},"Toch doorgaan →"));
   return children;
 }
 function Root(){

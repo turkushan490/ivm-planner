@@ -87,11 +87,9 @@ function TeamSelect({onSelect}){
     db.ref("teams/"+id).set({name:newName.trim(),color:newColor,created:new Date().toISOString()});
     setNewName("");setShow(false);
   };
-  const delTeam=(id)=>{
-    if(!confirm("Team en alle data verwijderen?"))return;
-    db.ref("teams/"+id).remove();
-    db.ref("planners/"+id).remove();
-  };
+  const[confirmDel,setConfirmDel]=useState(null);
+  const delTeam=(id)=>{setConfirmDel(id)};
+  const confirmDeleteTeam=()=>{if(!confirmDel)return;db.ref("teams/"+confirmDel).remove();db.ref("planners/"+confirmDel).remove();setConfirmDel(null)};
   
   if(!teams)return e("div",{style:{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh",background:"#0e0e1a",color:"#ccc",gap:12}},e(Logo)," Laden...");
 
@@ -116,7 +114,16 @@ function TeamSelect({onSelect}){
           e("div",null,e("label",{style:lS},"Kleur"),e("div",{style:{display:"flex",gap:4}},COLORS.slice(0,6).map(c=>e("div",{key:c,onClick:()=>setNewColor(c),style:{width:28,height:28,borderRadius:6,background:c,cursor:"pointer",border:newColor===c?"3px solid #fff":"3px solid transparent"}}))))),
         e("div",{style:{display:"flex",justifyContent:"flex-end",gap:8}},
           e("button",{onClick:()=>setShow(false),style:bS("#333")},"Annuleren"),
-          e("button",{onClick:addTeam,style:bS("#00b8d4")},"Aanmaken")))))
+          e("button",{onClick:addTeam,style:bS("#00b8d4")},"Aanmaken")))),
+      confirmDel&&e("div",{style:{position:"fixed",inset:0,zIndex:999,display:"flex",alignItems:"center",justifyContent:"center"},onClick:()=>setConfirmDel(null)},
+        e("div",{style:{position:"absolute",inset:0,background:"rgba(0,0,0,.65)",backdropFilter:"blur(6px)"}}),
+        e("div",{onClick:v=>v.stopPropagation(),style:{position:"relative",background:"#181830",border:"1px solid #2a2a45",borderRadius:14,padding:28,width:400,maxWidth:"90vw",boxShadow:"0 24px 80px rgba(0,0,0,.6)",animation:"fadeIn .2s ease-out",textAlign:"center"}},
+          e("div",{style:{fontSize:40,marginBottom:12}},"⚠️"),
+          e("h3",{style:{color:"#fff",fontSize:18,marginBottom:8}},"Team verwijderen?"),
+          e("p",{style:{color:"#888",fontSize:14,marginBottom:20}},"Dit verwijdert het team en alle planning data. Dit kan niet ongedaan worden."),
+          e("div",{style:{display:"flex",gap:10,justifyContent:"center"}},
+            e("button",{onClick:()=>setConfirmDel(null),style:{...bS("#333"),padding:"10px 24px"}},"Annuleren"),
+            e("button",{onClick:confirmDeleteTeam,style:{...bS("#ff1744"),padding:"10px 24px"}},"🗑 Verwijderen"))))
 }
 
 // ═══════════════════════════════════════

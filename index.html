@@ -191,7 +191,7 @@ const svV=()=>{if(!nvn.trim())return;const d=D();const sn=JSON.parse(JSON.string
 const rsV=v=>{const d=D();sa({...d,...v.snapshot});sShV(!1)};
 const dvV=id=>{const d=D();sa({...d,versions:(d.versions||[]).filter(v=>v.id!==id)})};
 
-const totalDays=useMemo(()=>{if(!data)return vd;let mx=addD(vs,vd);data.tasks.forEach(t=>{if(t.endDate>mx)mx=t.endDate});data.categories.forEach(c=>{if(c.period&&c.period.end>mx)mx=c.period.end});return Math.max(vd,diffD(vs,mx)+7)},[data,vs,vd]);
+const totalDays=useMemo(()=>{if(!data)return vd+28;let mx=addD(vs,vd+28);data.tasks.forEach(t=>{if(t.endDate>mx)mx=t.endDate});data.categories.forEach(c=>{if(c.period&&c.period.end>mx)mx=c.period.end});return Math.max(vd+28,diffD(vs,mx)+14)},[data,vs,vd]);
 const days=useMemo(()=>Array.from({length:totalDays},(_,i)=>addD(vs,i)),[vs,totalDays]);
 const wks=useMemo(()=>{const w=[];let c=null;days.forEach((d,i)=>{const l=`${MN(d)} Wk${Math.ceil(new Date(d).getDate()/7)}`;if(!c||c.label!==l){c={label:l,start:i,count:1};w.push(c)}else c.count++});return w},[days]);
 
@@ -217,12 +217,12 @@ e("div",{style:{display:"flex",alignItems:"center",gap:10}},
   e(Logo),e("div",null,e("div",{style:{fontSize:20,fontWeight:800}},"IVM Planner"),e("div",{style:{display:"flex",alignItems:"center",gap:6}},e("span",{style:{width:8,height:8,borderRadius:"50%",background:sc,display:"inline-block"}}),e("span",{style:{fontSize:10,color:"#888"}},teamName)))),
 e("div",{style:{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}},
 dm&&e("div",{style:{background:"#ff174420",border:"1px solid #ff1744",borderRadius:8,padding:"5px 12px",fontSize:12,color:"#ff8a80",display:"flex",alignItems:"center",gap:6}},e("span",null,dm.from?"🎯 Doel":"⛓ Bron"),e("button",{onClick:()=>sDM(null),style:{background:"none",border:"none",color:"#ff5252",cursor:"pointer"}},"✕")),
-!dm&&e("button",{onClick:()=>sDM({from:null}),style:{...bS("#252540"),fontSize:12,padding:"7px 12px"}},"⛓"),
-e("button",{onClick:undo,style:{...bS("#252540"),fontSize:12,padding:"7px 12px"}},"↩"),
-e("button",{onClick:reload,style:{...bS("#252540"),fontSize:12,padding:"7px 12px"},title:"Herladen van Firebase"},"🔄"),
-e("button",{onClick:()=>sShPDF(!0),style:{...bS("#252540"),fontSize:12,padding:"7px 12px"}},"📄"),
-e("button",{onClick:()=>sShV(!0),style:{...bS("#252540"),fontSize:12,padding:"7px 12px"}},"📋"),
-e("button",{onClick:()=>sShT(!0),style:{...bS("#252540"),fontSize:12,padding:"7px 12px"}},"📌"),
+!dm&&e("button",{onClick:()=>sDM({from:null}),style:{...bS("#252540"),fontSize:12,padding:"7px 12px"}},"⛓ Dep"),
+e("button",{onClick:undo,style:{...bS("#252540"),fontSize:12,padding:"7px 12px"}},"↩ Undo"),
+e("button",{onClick:reload,style:{...bS("#252540"),fontSize:12,padding:"7px 12px"}},"🔄 Sync"),
+e("button",{onClick:()=>sShPDF(!0),style:{...bS("#252540"),fontSize:12,padding:"7px 12px"}},"PDF"),
+e("button",{onClick:()=>sShV(!0),style:{...bS("#252540"),fontSize:12,padding:"7px 12px"}},"Versies"),
+e("button",{onClick:()=>sShT(!0),style:{...bS("#252540"),fontSize:12,padding:"7px 12px"}},"Templates"),
 e("div",{style:{height:18,width:1,background:"#333"}}),
 e("button",{onClick:()=>sVS(addD(vs,-7)),style:{...bS("#252540"),padding:"7px 10px"}},"◀"),
 e("span",{style:{fontSize:12,color:"#999",minWidth:140,textAlign:"center"}},fmt(vs)," — ",fmt(addD(vs,vd))),
@@ -269,7 +269,7 @@ pdfHtml&&e("div",{style:{position:"fixed",inset:0,zIndex:999,background:"#0e0e1a
       e("button",{onClick:()=>{const f=document.getElementById("pdf-frame");if(f)f.contentWindow.print()},style:{...bS("#00b8d4"),fontSize:13,padding:"8px 16px"}},"🖨 Printen"),
       e("button",{onClick:()=>setPdfHtml(null),style:{...bS("#ff1744"),fontSize:13,padding:"8px 16px"}},"✕ Sluiten"))),
   e("iframe",{id:"pdf-frame",srcDoc:pdfHtml,style:{flex:1,border:"none",background:"#fff"}})),
-e(Mod,{open:shPDF,onClose:()=>sShPDF(!1),title:"📄 PDF Export"},e("div",{style:{display:"flex",flexDirection:"column",gap:14,paddingTop:16}},e("div",{style:{display:"flex",gap:12}},e("div",{style:{flex:1}},e("label",{style:lS},"Van"),e("input",{type:"date",value:pdfS,onChange:ev=>sPdfS(ev.target.value),style:iS})),e("div",{style:{flex:1}},e("label",{style:lS},"Tot"),e("input",{type:"date",value:pdfE,onChange:ev=>sPdfE(ev.target.value),style:iS}))),e("div",{style:{display:"flex",justifyContent:"flex-end",gap:8}},e("button",{onClick:()=>sShPDF(!1),style:bS("#333")},"Annuleren"),e("button",{onClick:()=>{exportPDF(D(),fc,pdfS,pdfE,setPdfHtml);sShPDF(!1)},style:bS("#00b8d4")},"Exporteren")))),
+e(Mod,{open:shPDF,onClose:()=>sShPDF(!1),title:"📄 PDF Export"},e("div",{style:{display:"flex",flexDirection:"column",gap:14,paddingTop:16}},e("div",{style:{display:"flex",gap:12}},e("div",{style:{flex:1}},e("label",{style:lS},"Van"),e("input",{type:"date",value:pdfS,onChange:ev=>sPdfS(ev.target.value),style:iS})),e("div",{style:{flex:1}},e("label",{style:lS},"Tot"),e("input",{type:"date",value:pdfE,onChange:ev=>sPdfE(ev.target.value),style:iS}))),e("div",{style:{display:"flex",justifyContent:"flex-end",gap:8}},e("button",{onClick:()=>sShPDF(!1),style:bS("#333")},"Annuleren"),e("button",{onClick:()=>{const d=dataRef.current||data;console.log("PDF export",d);exportPDF(d,fc,pdfS,pdfE,setPdfHtml);sShPDF(!1)},style:bS("#00b8d4")},"Exporteren")))),
 e(Mod,{open:shV,onClose:()=>sShV(!1),title:"📋 Versies"},e("div",{style:{display:"flex",flexDirection:"column",gap:12,paddingTop:16}},e("div",{style:{display:"flex",gap:8}},e("input",{value:nvn,onChange:ev=>sNVN(ev.target.value),style:{...iS,flex:1},placeholder:"Versie..."}),e("button",{onClick:svV,style:bS("#00b8d4")},"Opslaan")),e("div",{style:{maxHeight:300,overflow:"auto",display:"flex",flexDirection:"column",gap:6}},!(data.versions||[]).length&&e("span",{style:{color:"#555"}},"Geen versies."),(data.versions||[]).slice().reverse().map(v=>e("div",{key:v.id,style:{display:"flex",alignItems:"center",justifyContent:"space-between",background:"#1a1a30",borderRadius:8,padding:"8px 12px"}},e("div",null,e("div",{style:{fontWeight:600}},v.name),e("div",{style:{fontSize:11,color:"#555"}},new Date(v.date).toLocaleString("nl-NL"))),e("div",{style:{display:"flex",gap:6}},e("button",{onClick:()=>rsV(v),style:{...bS("#ff6d00"),fontSize:12,padding:"5px 10px"}},"Herstel"),e("button",{onClick:()=>dvV(v.id),style:{...bS("#333"),fontSize:12,padding:"5px 10px"}},"✕"))))))),
 e(Mod,{open:!!shT,onClose:()=>sShT(!1),title:"📌 Templates"},e("div",{style:{display:"flex",flexDirection:"column",gap:8,maxHeight:320,overflow:"auto",paddingTop:16}},!(data.templates||[]).length&&e("span",{style:{color:"#555"}},"Rechtermuisklik → Template."),(data.templates||[]).map(t=>e("div",{key:t.id,style:{display:"flex",alignItems:"center",justifyContent:"space-between",background:"#1a1a30",borderRadius:8,padding:"8px 12px"}},e("div",{style:{display:"flex",alignItems:"center",gap:10}},e("div",{style:{width:14,height:14,borderRadius:4,background:t.color}}),e("span",null,t.name),e("span",{style:{fontSize:11,color:"#555"}},t.duration+"d")),e("div",{style:{display:"flex",gap:6}},typeof shT==="string"&&e("button",{onClick:()=>{apTmpl(t,shT);sShT(!1)},style:{...bS("#00b8d4"),fontSize:12,padding:"5px 10px"}},"Toepassen"),e("button",{onClick:()=>dTmpl(t.id),style:{...bS("#333"),fontSize:12,padding:"5px 10px"}},"✕")))))),
 cx&&e(CMenu,{x:cx.x,y:cx.y,items:cx.items,onClose:()=>sCx(null)}))}

@@ -193,7 +193,7 @@ const dvV=id=>{const d=D();sa({...d,versions:(d.versions||[]).filter(v=>v.id!==i
 
 const[winW,setWinW]=useState(window.innerWidth);
 useEffect(()=>{const h=()=>setWinW(window.innerWidth);window.addEventListener("resize",h);return()=>window.removeEventListener("resize",h)},[]);
-const DAY_W=Math.max(30,Math.floor((winW-SIDEBAR_W-20)/vd));
+const DAY_W=Math.max(20,Math.floor((winW-SIDEBAR_W-2)/vd));
 const totalDays=vd;
 const days=useMemo(()=>Array.from({length:totalDays},(_,i)=>addD(vs,i)),[vs,totalDays]);
 const months=useMemo(()=>{const m=[];let c=null;days.forEach((d,i)=>{const dt=new Date(d);const l=MN(d)+" "+dt.getFullYear();if(!c||c.label!==l){c={label:l,start:i,count:1};m.push(c)}else c.count++});return m},[days]);
@@ -245,7 +245,7 @@ e("div",{style:{position:"sticky",top:0,zIndex:10,display:"flex",flexDirection:"
 e("div",{style:{display:"flex",height:HEAD_H*0.4}},months.map((m,i)=>e("div",{key:i,style:{width:m.count*DAY_W,borderRight:"1px solid #353550",borderBottom:"1px solid #252540",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,color:"#ccc",fontWeight:700,letterSpacing:0.5}},m.label))),
 e("div",{style:{display:"flex",height:HEAD_H*0.6}},days.map((d,i)=>{const dt=new Date(d);const isT=toISO(new Date())===d;const we=isWE(d);const bg=isT?"rgba(0,200,83,.12)":we?"rgba(255,23,68,.06)":"transparent";const col=isT?"#00c853":we?"#ff5274":"#7799bb";return e("div",{key:i,style:{width:DAY_W,borderRight:"1px solid rgba(255,255,255,.04)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:bg}},e("span",{style:{fontWeight:isT?800:600,fontSize:14,color:col}},dt.getDate()),e("span",{style:{fontSize:9,color:col,opacity:.8,fontWeight:500}},DN[dt.getDay()]))}))),
 
-e("div",{style:{position:"relative",height:totalH,minWidth:totalDays*DAY_W}},
+e("div",{style:{position:"relative",height:totalH}},
 days.map((d,i)=>e("div",{key:i,style:{position:"absolute",left:i*DAY_W,top:0,width:DAY_W,height:totalH,borderRight:"1px solid rgba(255,255,255,.025)",background:isWE(d)?"rgba(255,23,68,.04)":"transparent"}})),
 (()=>{const ti=diffD(vs,toISO(new Date()));return ti>=0&&ti<totalDays?e("div",{style:{position:"absolute",left:ti*DAY_W+DAY_W/2-1,top:0,width:3,height:totalH,background:"linear-gradient(180deg,#00c853,#00c85388)",zIndex:5,borderRadius:2}}):null})(),
 fc.map((cat,ci)=>{if(!cat.period)return null;const s=diffD(vs,cat.period.start),dur=diffD(cat.period.start,cat.period.end)+1;return e("div",{key:"p"+cat.id,style:{position:"absolute",left:s*DAY_W,top:ci*ROW_H+4,width:dur*DAY_W,height:ROW_H-8,background:cat.color,opacity:.06,borderRadius:6}})}),

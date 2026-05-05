@@ -191,9 +191,9 @@ const svV=()=>{if(!nvn.trim())return;const d=D();const sn=JSON.parse(JSON.string
 const rsV=v=>{const d=D();sa({...d,...v.snapshot});sShV(!1)};
 const dvV=id=>{const d=D();sa({...d,versions:(d.versions||[]).filter(v=>v.id!==id)})};
 
-const totalDays=useMemo(()=>{if(!data)return vd+28;let mx=addD(vs,vd+28);data.tasks.forEach(t=>{if(t.endDate>mx)mx=t.endDate});data.categories.forEach(c=>{if(c.period&&c.period.end>mx)mx=c.period.end});return Math.max(vd+28,diffD(vs,mx)+14)},[data,vs,vd]);
+const totalDays=vd;
 const days=useMemo(()=>Array.from({length:totalDays},(_,i)=>addD(vs,i)),[vs,totalDays]);
-const wks=useMemo(()=>{const w=[];let c=null;days.forEach((d,i)=>{const l=`${MN(d)} Wk${Math.ceil(new Date(d).getDate()/7)}`;if(!c||c.label!==l){c={label:l,start:i,count:1};w.push(c)}else c.count++});return w},[days]);
+const wks=useMemo(()=>{const w=[];let c=null;days.forEach((d,i)=>{const dt=new Date(d);const wn=Math.ceil(dt.getDate()/7);const l=MN(d)+" W"+wn;if(!c||c.label!==l){c={label:l,start:i,count:1};w.push(c)}else c.count++});return w},[days]);
 
 useEffect(()=>{const onKey=ev=>{if(ev.target.tagName==="INPUT"||ev.target.tagName==="TEXTAREA"||ev.target.tagName==="SELECT")return;if((ev.ctrlKey||ev.metaKey)&&ev.key==="z"){ev.preventDefault();undo();return}if((ev.ctrlKey||ev.metaKey)&&ev.key==="c"&&sel){ev.preventDefault();const t=D().tasks.find(x=>x.id===sel);if(t)cpT(t);return}if((ev.ctrlKey||ev.metaKey)&&ev.key==="v"&&cb){ev.preventDefault();let cid=null;if(sel){const t=D().tasks.find(x=>x.id===sel);if(t)cid=t.categoryId}if(!cid&&fc.length)cid=fc[0].id;if(cid)paT(cid);return}if((ev.key==="Delete"||ev.key==="Backspace")&&sel){ev.preventDefault();show("🗑");dT(sel);return}if(ev.key==="Escape"){if(dm)sDM(null);else sSel(null)}};addEventListener("keydown",onKey);return()=>removeEventListener("keydown",onKey)},[sel,cb,dm,data,fc,undo]);
 
@@ -211,24 +211,24 @@ return e("div",{style:{fontFamily:"'Outfit',sans-serif",background:"#0e0e1a",col
 toast&&e("div",{style:{position:"fixed",bottom:24,left:"50%",transform:"translateX(-50%)",background:"#1e1e35",border:"1px solid #00b8d455",borderRadius:10,padding:"10px 20px",fontSize:14,fontWeight:600,color:"#00b8d4",zIndex:1000,animation:"fadeIn .15s"}},toast),
 
 // TOP BAR
-e("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 20px",background:"#141425",borderBottom:"1px solid #252540",flexShrink:0,gap:12,flexWrap:"wrap"}},
+e("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"8px 16px",background:"#141425",borderBottom:"1px solid #252540",flexShrink:0,gap:8,flexWrap:"wrap"}},
 e("div",{style:{display:"flex",alignItems:"center",gap:10}},
   e("button",{onClick:onBack,style:{background:"none",border:"none",color:"#666",cursor:"pointer",fontSize:20,padding:"4px 8px"},title:"Terug naar teams"},"←"),
   e(Logo),e("div",null,e("div",{style:{fontSize:20,fontWeight:800}},"IVM Planner"),e("div",{style:{display:"flex",alignItems:"center",gap:6}},e("span",{style:{width:8,height:8,borderRadius:"50%",background:sc,display:"inline-block"}}),e("span",{style:{fontSize:10,color:"#888"}},teamName)))),
 e("div",{style:{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}},
 dm&&e("div",{style:{background:"#ff174420",border:"1px solid #ff1744",borderRadius:8,padding:"5px 12px",fontSize:12,color:"#ff8a80",display:"flex",alignItems:"center",gap:6}},e("span",null,dm.from?"🎯 Doel":"⛓ Bron"),e("button",{onClick:()=>sDM(null),style:{background:"none",border:"none",color:"#ff5252",cursor:"pointer"}},"✕")),
-!dm&&e("button",{onClick:()=>sDM({from:null}),style:{...bS("#252540"),fontSize:12,padding:"7px 12px"}},"⛓ Dep"),
-e("button",{onClick:undo,style:{...bS("#252540"),fontSize:12,padding:"7px 12px"}},"↩ Undo"),
-e("button",{onClick:reload,style:{...bS("#252540"),fontSize:12,padding:"7px 12px"}},"🔄 Sync"),
-e("button",{onClick:()=>sShPDF(!0),style:{...bS("#252540"),fontSize:12,padding:"7px 12px"}},"PDF"),
-e("button",{onClick:()=>sShV(!0),style:{...bS("#252540"),fontSize:12,padding:"7px 12px"}},"Versies"),
-e("button",{onClick:()=>sShT(!0),style:{...bS("#252540"),fontSize:12,padding:"7px 12px"}},"Templates"),
+!dm&&e("button",{onClick:()=>sDM({from:null}),style:{...bS("#252540"),fontSize:11,padding:"5px 7px"},title:"Dependency"},"⛓"),
+e("button",{onClick:undo,style:{...bS("#252540"),fontSize:11,padding:"5px 7px"},title:"Undo"},"↩"),
+e("button",{onClick:reload,style:{...bS("#252540"),fontSize:11,padding:"5px 7px"},title:"Sync"},"🔄"),
+e("button",{onClick:()=>sShPDF(!0),style:{...bS("#252540"),fontSize:11,padding:"5px 7px"},title:"PDF"},"📄"),
+e("button",{onClick:()=>sShV(!0),style:{...bS("#252540"),fontSize:11,padding:"5px 7px"},title:"Versies"},"📋"),
+e("button",{onClick:()=>sShT(!0),style:{...bS("#252540"),fontSize:11,padding:"5px 7px"},title:"Templates"},"📌"),
 e("div",{style:{height:18,width:1,background:"#333"}}),
 e("button",{onClick:()=>sVS(addD(vs,-7)),style:{...bS("#252540"),padding:"7px 10px"}},"◀"),
 e("span",{style:{fontSize:12,color:"#999",minWidth:140,textAlign:"center"}},fmt(vs)," — ",fmt(addD(vs,vd))),
 e("button",{onClick:()=>sVS(addD(vs,7)),style:{...bS("#252540"),padding:"7px 10px"}},"▶"),
 e("button",{onClick:()=>sVS(addD(new Date(),-3)),style:{...bS("#252540"),padding:"7px 10px",fontSize:12}},"Vandaag"),
-e("select",{value:vd,onChange:ev=>sVD(+ev.target.value),style:{...iS,width:75,padding:"7px",fontSize:12}},e("option",{value:14},"2wk"),e("option",{value:21},"3wk"),e("option",{value:28},"4wk")))),
+e("select",{value:vd,onChange:ev=>{sVD(+ev.target.value);console.log("View days set to:",+ev.target.value)},style:{...iS,width:80,padding:"7px",fontSize:12}},e("option",{value:14},"2 wkn"),e("option",{value:21},"3 wkn"),e("option",{value:28},"4 wkn"),e("option",{value:42},"6 wkn"),e("option",{value:56},"8 wkn")))),
 
 // MAIN
 e("div",{style:{display:"flex",flex:1,overflow:"hidden"}},

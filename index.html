@@ -38,7 +38,7 @@ const db=firebase.database();
 <script>
 const e=React.createElement,{useState,useEffect,useRef,useCallback,useMemo}=React;
 const COLORS=["#00b8d4","#00c853","#ff6d00","#d500f9","#ff1744","#ffd600","#00bfa5","#304ffe","#c51162","#64dd17","#ff9100","#6200ea"];
-const DAY_W=56,ROW_H=80,HEAD_H=64,SIDEBAR_W=260,INDENT=22,TPAD=10,TH=ROW_H-TPAD*2;
+const DAY_W=56,ROW_H=80,HEAD_H=72,SIDEBAR_W=260,INDENT=22,TPAD=10,TH=ROW_H-TPAD*2;
 const fmt=d=>{const t=new Date(d);return`${t.getDate()}-${t.getMonth()+1}-${t.getFullYear()}`};
 const toISO=d=>new Date(d).toISOString().slice(0,10);
 const diffD=(a,b)=>Math.round((new Date(b)-new Date(a))/864e5);
@@ -193,7 +193,7 @@ const dvV=id=>{const d=D();sa({...d,versions:(d.versions||[]).filter(v=>v.id!==i
 
 const totalDays=vd;
 const days=useMemo(()=>Array.from({length:totalDays},(_,i)=>addD(vs,i)),[vs,totalDays]);
-const wks=useMemo(()=>{const w=[];let c=null;days.forEach((d,i)=>{const dt=new Date(d);const wn=Math.ceil(dt.getDate()/7);const l=MN(d)+" W"+wn;if(!c||c.label!==l){c={label:l,start:i,count:1};w.push(c)}else c.count++});return w},[days]);
+const months=useMemo(()=>{const m=[];let c=null;days.forEach((d,i)=>{const dt=new Date(d);const l=MN(d)+" "+dt.getFullYear();if(!c||c.label!==l){c={label:l,start:i,count:1};m.push(c)}else c.count++});return m},[days]);
 
 useEffect(()=>{const onKey=ev=>{if(ev.target.tagName==="INPUT"||ev.target.tagName==="TEXTAREA"||ev.target.tagName==="SELECT")return;if((ev.ctrlKey||ev.metaKey)&&ev.key==="z"){ev.preventDefault();undo();return}if((ev.ctrlKey||ev.metaKey)&&ev.key==="c"&&sel){ev.preventDefault();const t=D().tasks.find(x=>x.id===sel);if(t)cpT(t);return}if((ev.ctrlKey||ev.metaKey)&&ev.key==="v"&&cb){ev.preventDefault();let cid=null;if(sel){const t=D().tasks.find(x=>x.id===sel);if(t)cid=t.categoryId}if(!cid&&fc.length)cid=fc[0].id;if(cid)paT(cid);return}if((ev.key==="Delete"||ev.key==="Backspace")&&sel){ev.preventDefault();show("🗑");dT(sel);return}if(ev.key==="Escape"){if(dm)sDM(null);else sSel(null)}};addEventListener("keydown",onKey);return()=>removeEventListener("keydown",onKey)},[sel,cb,dm,data,fc,undo]);
 
@@ -217,12 +217,12 @@ e("div",{style:{display:"flex",alignItems:"center",gap:10}},
   e(Logo),e("div",null,e("div",{style:{fontSize:20,fontWeight:800}},"IVM Planner"),e("div",{style:{display:"flex",alignItems:"center",gap:6}},e("span",{style:{width:8,height:8,borderRadius:"50%",background:sc,display:"inline-block"}}),e("span",{style:{fontSize:10,color:"#888"}},teamName)))),
 e("div",{style:{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}},
 dm&&e("div",{style:{background:"#ff174420",border:"1px solid #ff1744",borderRadius:8,padding:"5px 12px",fontSize:12,color:"#ff8a80",display:"flex",alignItems:"center",gap:6}},e("span",null,dm.from?"🎯 Doel":"⛓ Bron"),e("button",{onClick:()=>sDM(null),style:{background:"none",border:"none",color:"#ff5252",cursor:"pointer"}},"✕")),
-!dm&&e("button",{onClick:()=>sDM({from:null}),style:{...bS("#252540"),fontSize:11,padding:"5px 7px"},title:"Dependency"},"⛓"),
-e("button",{onClick:undo,style:{...bS("#252540"),fontSize:11,padding:"5px 7px"},title:"Undo"},"↩"),
-e("button",{onClick:reload,style:{...bS("#252540"),fontSize:11,padding:"5px 7px"},title:"Sync"},"🔄"),
-e("button",{onClick:()=>sShPDF(!0),style:{...bS("#252540"),fontSize:11,padding:"5px 7px"},title:"PDF"},"📄"),
-e("button",{onClick:()=>sShV(!0),style:{...bS("#252540"),fontSize:11,padding:"5px 7px"},title:"Versies"},"📋"),
-e("button",{onClick:()=>sShT(!0),style:{...bS("#252540"),fontSize:11,padding:"5px 7px"},title:"Templates"},"📌"),
+!dm&&e("button",{onClick:()=>sDM({from:null}),style:{...bS("#252540"),fontSize:11,padding:"5px 8px"}},"⛓ Dep"),
+e("button",{onClick:undo,style:{...bS("#252540"),fontSize:11,padding:"5px 8px"}},"↩ Undo"),
+e("button",{onClick:reload,style:{...bS("#252540"),fontSize:11,padding:"5px 8px"}},"🔄"),
+e("button",{onClick:()=>sShPDF(!0),style:{...bS("#252540"),fontSize:11,padding:"5px 8px"}},"PDF"),
+e("button",{onClick:()=>sShV(!0),style:{...bS("#252540"),fontSize:11,padding:"5px 8px"}},"📋 Ver"),
+e("button",{onClick:()=>sShT(!0),style:{...bS("#252540"),fontSize:11,padding:"5px 8px"}},"📌 Tmpl"),
 e("div",{style:{height:18,width:1,background:"#333"}}),
 e("button",{onClick:()=>sVS(addD(vs,-7)),style:{...bS("#252540"),padding:"7px 10px"}},"◀"),
 e("span",{style:{fontSize:12,color:"#999",minWidth:140,textAlign:"center"}},fmt(vs)," — ",fmt(addD(vs,vd))),
@@ -239,12 +239,12 @@ e("div",{style:{flex:1,overflow:"auto"}},fc.map((cat,ci)=>{const hk=hc(cat.id);c
 
 e("div",{ref:tlRef,style:{flex:1,overflow:"auto",position:"relative"},onClick:()=>{if(dm)sDM(null);else sSel(null)}},
 e("div",{style:{position:"sticky",top:0,zIndex:10,display:"flex",flexDirection:"column",height:HEAD_H,background:"#141425",borderBottom:"1px solid #252540"}},
-e("div",{style:{display:"flex",height:HEAD_H/2}},wks.map((w,i)=>e("div",{key:i,style:{width:w.count*DAY_W,borderRight:"1px solid #252540",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:"#aaa",fontWeight:600}},w.label))),
-e("div",{style:{display:"flex",height:HEAD_H/2}},days.map((d,i)=>{const dt=new Date(d);const isT=toISO(new Date())===d;return e("div",{key:i,style:{width:DAY_W,borderRight:"1px solid rgba(255,255,255,.04)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",color:isT?"#00b8d4":isWE(d)?"#444":"#777",background:isT?"rgba(0,184,212,.06)":"transparent"}},e("span",{style:{fontWeight:isT?800:600,fontSize:13}},dt.getDate()),e("span",{style:{fontSize:10,opacity:.7}},DN[dt.getDay()]))}))),
+e("div",{style:{display:"flex",height:HEAD_H*0.4}},months.map((m,i)=>e("div",{key:i,style:{width:m.count*DAY_W,borderRight:"1px solid #353550",borderBottom:"1px solid #252540",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,color:"#ccc",fontWeight:700,letterSpacing:0.5}},m.label))),
+e("div",{style:{display:"flex",height:HEAD_H*0.6}},days.map((d,i)=>{const dt=new Date(d);const isT=toISO(new Date())===d;const we=isWE(d);const bg=isT?"rgba(0,200,83,.12)":we?"rgba(255,23,68,.06)":"transparent";const col=isT?"#00c853":we?"#ff5274":"#7799bb";return e("div",{key:i,style:{width:DAY_W,borderRight:"1px solid rgba(255,255,255,.04)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",background:bg}},e("span",{style:{fontWeight:isT?800:600,fontSize:14,color:col}},dt.getDate()),e("span",{style:{fontSize:9,color:col,opacity:.8,fontWeight:500}},DN[dt.getDay()]))}))),
 
 e("div",{style:{position:"relative",height:totalH,minWidth:totalDays*DAY_W}},
-days.map((d,i)=>e("div",{key:i,style:{position:"absolute",left:i*DAY_W,top:0,width:DAY_W,height:totalH,borderRight:"1px solid rgba(255,255,255,.025)",background:isWE(d)?"rgba(255,255,255,.018)":"transparent"}})),
-(()=>{const ti=diffD(vs,toISO(new Date()));return ti>=0&&ti<totalDays?e("div",{style:{position:"absolute",left:ti*DAY_W+DAY_W/2-1,top:0,width:3,height:totalH,background:"linear-gradient(180deg,#ff1744,#ff174488)",zIndex:5,borderRadius:2}}):null})(),
+days.map((d,i)=>e("div",{key:i,style:{position:"absolute",left:i*DAY_W,top:0,width:DAY_W,height:totalH,borderRight:"1px solid rgba(255,255,255,.025)",background:isWE(d)?"rgba(255,23,68,.04)":"transparent"}})),
+(()=>{const ti=diffD(vs,toISO(new Date()));return ti>=0&&ti<totalDays?e("div",{style:{position:"absolute",left:ti*DAY_W+DAY_W/2-1,top:0,width:3,height:totalH,background:"linear-gradient(180deg,#00c853,#00c85388)",zIndex:5,borderRadius:2}}):null})(),
 fc.map((cat,ci)=>{if(!cat.period)return null;const s=diffD(vs,cat.period.start),dur=diffD(cat.period.start,cat.period.end)+1;return e("div",{key:"p"+cat.id,style:{position:"absolute",left:s*DAY_W,top:ci*ROW_H+4,width:dur*DAY_W,height:ROW_H-8,background:cat.color,opacity:.06,borderRadius:6}})}),
 fc.map((cat,i)=>e("div",{key:cat.id,style:{position:"absolute",left:0,top:i*ROW_H,width:"100%",height:ROW_H,borderBottom:"1px solid rgba(255,255,255,.03)"},onContextMenu:ev=>cCtx(ev,cat)})),
 data.tasks.map((t,ti)=>{const ci=fc.findIndex(c=>c.id===t.categoryId);if(ci<0)return null;const so=diffD(vs,t.startDate),dur=Math.max(1,diffD(t.startDate,t.endDate)+1);const x=so*DAY_W,w=dur*DAY_W,y=ci*ROW_H+TPAD,h=TH;const isSel=sel===t.id;const isSrc=dm&&dm.from===t.id;

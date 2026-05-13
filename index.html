@@ -233,10 +233,10 @@ e("button",{onClick:()=>sVS(addD(vs,7)),style:{...bS("#252540"),padding:"7px 10p
 e("button",{onClick:()=>sVS(addD(new Date(),-3)),style:{...bS("#252540"),padding:"7px 10px",fontSize:12}},"Vandaag"),
 e("select",{value:vd,onChange:ev=>{sVD(+ev.target.value);console.log("View days set to:",+ev.target.value)},style:{...iS,width:80,padding:"7px",fontSize:12}},e("option",{value:14},"2 wkn"),e("option",{value:21},"3 wkn"),e("option",{value:28},"4 wkn"),e("option",{value:42},"6 wkn"),e("option",{value:56},"8 wkn")))),
 
-// MAIN — single scroll container: sticky header (col-header + day-header) + sticky sidebar col
-e("div",{ref:tlRef,style:{flex:1,overflowY:"auto",overflowX:"hidden",position:"relative",display:"flex",flexDirection:"column"},onScroll:ev=>{if(ev.currentTarget.scrollLeft!==0)ev.currentTarget.scrollLeft=0},onClick:()=>{if(dm)sDM(null);else sSel(null)}},
+// MAIN — single scroll container with sticky header
+e("div",{ref:tlRef,style:{flex:1,overflowY:"auto",overflowX:"hidden",position:"relative"},onScroll:ev=>{if(ev.currentTarget.scrollLeft!==0)ev.currentTarget.scrollLeft=0},onClick:()=>{if(dm)sDM(null);else sSel(null)}},
 // HEADER ROW (sticky top): sidebar-header + day-header, side by side
-e("div",{style:{position:"sticky",top:0,zIndex:20,display:"flex",height:HEAD_H,background:"#141425",borderBottom:"1px solid #252540"}},
+e("div",{style:{position:"sticky",top:0,zIndex:20,display:"flex",height:HEAD_H,background:"#141425",borderBottom:"1px solid #252540",flexShrink:0}},
 e("div",{style:{width:SIDEBAR_W,flexShrink:0,background:"#121222",borderRight:"1px solid #252540",borderBottom:"1px solid #252540",display:"flex",alignItems:"center",padding:"0 14px",justifyContent:"space-between",position:"sticky",left:0,zIndex:21}},e("span",{style:{fontSize:12,color:"#555",textTransform:"uppercase",letterSpacing:1.5,fontWeight:600}},"Categorieën"),e("button",{onClick:ev=>{ev.stopPropagation();sEC({isNew:!0,parentId:null,name:"",color:COLORS[data.categories.length%COLORS.length],period:null})},style:{background:"#00b8d4",border:"none",borderRadius:6,width:26,height:26,color:"#fff",fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}},"+")),
 e("div",{style:{flex:1,display:"flex",flexDirection:"column"}},
 e("div",{style:{display:"flex",height:HEAD_H*0.4}},months.map((m,i)=>e("div",{key:i,style:{width:m.count*DAY_W,borderRight:"1px solid #353550",borderBottom:"1px solid #252540",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,color:"#ccc",fontWeight:700,letterSpacing:0.5}},m.label))),

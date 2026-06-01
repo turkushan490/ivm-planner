@@ -40,7 +40,7 @@ const db=firebase.database();
 <script>
 const e=React.createElement,{useState,useEffect,useRef,useCallback,useMemo}=React;
 const COLORS=["#00b8d4","#00c853","#ff6d00","#d500f9","#ff1744","#ffd600","#00bfa5","#304ffe","#c51162","#64dd17","#ff9100","#6200ea"];
-const ROW_H=32,HEAD_H=52,SIDEBAR_W=200,INDENT=16,TPAD=4,TH=ROW_H-TPAD*2;
+const ROW_H=42,HEAD_H=52,SIDEBAR_W=200,INDENT=16,TPAD=4,TH=ROW_H-TPAD*2;
 const fmt=d=>{const t=new Date(d);return`${t.getDate()}-${t.getMonth()+1}-${t.getFullYear()}`};
 const toISO=d=>new Date(d).toISOString().slice(0,10);
 const diffD=(a,b)=>Math.round((new Date(b)-new Date(a))/864e5);
